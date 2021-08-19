@@ -179,7 +179,7 @@ end
 local function validate_signature(conf, jwt, second_call)
     local issuer_cache_key = 'issuer_keys_' .. jwt.claims.iss
     
-    well_known_endpoint = keycloak_keys.get_wellknown_endpoint(conf.well_known_template, jwt.claims.iss)
+    local well_known_endpoint = keycloak_keys.get_wellknown_endpoint(conf.well_known_template, jwt.claims.iss)
     -- Retrieve public keys
     local public_keys, err = kong.cache:get(issuer_cache_key, nil, get_keys, well_known_endpoint, true)
 
@@ -199,7 +199,7 @@ local function validate_signature(conf, jwt, second_call)
     end
 
     -- We could not validate signature, try to get a new keyset?
-    since_last_update = socket.gettime() - public_keys.updated_at
+    local since_last_update = socket.gettime() - public_keys.updated_at
     if not second_call and since_last_update > conf.iss_key_grace_period then
         kong.log.debug('Could not validate signature. Keys updated last ' .. since_last_update .. ' seconds ago')
         kong.cache:invalidate_local(issuer_cache_key)
@@ -285,7 +285,7 @@ local function do_authentication(conf)
         return false, { status = 401, message = "Token issuer not allowed" }
     end
 
-    err = validate_signature(conf, jwt)
+    local err = validate_signature(conf, jwt)
     if err ~= nil then
         return false, err
     end
