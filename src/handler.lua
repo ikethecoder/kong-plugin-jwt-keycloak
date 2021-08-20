@@ -116,6 +116,15 @@ local function load_consumer_by_custom_id(custom_id)
     return result
 end
 
+local function load_consumer_by_username(username)
+    local result, err = kong.db.consumers:select_by_username(username)
+    if not result then
+        return nil, err
+    end
+    kong.log.info('Consumer' .. username .. ' result ' .. result)
+    return result
+end
+
 local function set_consumer(consumer, credential, token)
     local set_header = kong.service.request.set_header
     local clear_header = kong.service.request.clear_header
@@ -217,13 +226,14 @@ local function match_consumer(conf, jwt)
     kong.log.info('Consumer ID' .. consumer_id)
 
     if conf.consumer_match_claim_custom_id then
-        consumer_cache_key = "custom_id_key_" .. consumer_id
+        local consumer_cache_key = "custom_id_key_" .. consumer_id
         kong.log.info('Cache key' .. consumer_cache_key)
         consumer, err = kong.cache:get(consumer_cache_key, nil, load_consumer_by_custom_id, consumer_id)
         kong.log.info('Consumer' .. consumer)
     else
-        consumer_cache_key = kong.db.consumers:cache_key(consumer_id)
-        consumer, err = kong.cache:get(consumer_cache_key, nil, load_consumer, consumer_id, true)
+        local consumer_cache_key = "username_key_" .. consumer_id
+        kong.log.info('Cache key' .. consumer_cache_key)
+        consumer, err = kong.cache:get(consumer_cache_key, nil, load_consumer_by_username, consumer_id)
     end
 
     if err then
