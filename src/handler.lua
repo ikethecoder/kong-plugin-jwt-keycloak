@@ -108,11 +108,11 @@ local function load_consumer(consumer_id, anonymous)
 end
 
 local function load_consumer_by_custom_id(custom_id)
+    kong.log.info('Query Consumer by custom-id for ' .. custom_id)
     local result, err = kong.db.consumers:select_by_custom_id(custom_id)
     if not result then
         return nil, err
     end
-    kong.log.info('Consumer' .. custom_id .. ' result ' .. result)
     return result
 end
 
@@ -121,7 +121,6 @@ local function load_consumer_by_username(username)
     if not result then
         return nil, err
     end
-    kong.log.info('Consumer' .. username .. ' result ' .. result)
     return result
 end
 
@@ -223,11 +222,9 @@ local function match_consumer(conf, jwt)
     local consumer, err
     local consumer_id = jwt.claims[conf.consumer_match_claim]
 
-    kong.log.info('Consumer ID' .. consumer_id)
-
     if conf.consumer_match_claim_custom_id then
         local consumer_cache_key = "custom_id_key_" .. consumer_id
-        kong.log.info('Cache key' .. consumer_cache_key)
+        kong.log.info('Cache key ' .. consumer_cache_key)
         consumer, err = kong.cache:get(consumer_cache_key, nil, load_consumer_by_custom_id, consumer_id)
         kong.log.info('Consumer' .. consumer)
     else
