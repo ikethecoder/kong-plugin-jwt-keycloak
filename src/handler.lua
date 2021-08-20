@@ -226,7 +226,6 @@ local function match_consumer(conf, jwt)
         local consumer_cache_key = "custom_id_key_" .. consumer_id
         kong.log.info('Cache key ' .. consumer_cache_key)
         consumer, err = kong.cache:get(consumer_cache_key, nil, load_consumer_by_custom_id, consumer_id)
-        kong.log.info('Consumer' .. consumer)
     else
         local consumer_cache_key = "username_key_" .. consumer_id
         kong.log.info('Cache key' .. consumer_cache_key)
