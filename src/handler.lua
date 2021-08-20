@@ -303,7 +303,7 @@ local function do_authentication(conf)
 
     -- Match consumer
     if conf.consumer_match then
-        ok, err = match_consumer(conf, jwt)
+        local ok, err = match_consumer(conf, jwt)
         if not ok then
             return ok, err
         end
