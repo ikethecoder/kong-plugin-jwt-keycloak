@@ -240,6 +240,7 @@ local function match_consumer(conf, jwt)
         return false, { status = 401, message = "Unable to find consumer for token" }
     end
 
+    -- https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.2
     set_consumer(consumer, { id = jwt.claims["sub"] }, nil)
     
 
