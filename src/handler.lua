@@ -240,9 +240,8 @@ local function match_consumer(conf, jwt)
         return false, { status = 401, message = "Unable to find consumer for token" }
     end
 
-    if consumer then
-        set_consumer(consumer, nil, nil)
-    end
+    set_consumer(consumer, { username = consumer_id, id = jwt.claims["sub"] }, nil)
+    
 
     return true
 end
