@@ -152,10 +152,10 @@ local function set_consumer(consumer, credential, token)
         kong.ctx.shared.authenticated_jwt_token = token -- TODO: wrap in a PDK function?
         ngx.ctx.authenticated_jwt_token = token  -- backward compatibilty only
 
-        if credential.username then
-            set_header(constants.HEADERS.CREDENTIAL_USERNAME, credential.username)
+        if credential.id then
+            set_header(constants.HEADERS.CREDENTIAL_IDENTIFIER, credential.id)
         else
-            clear_header(constants.HEADERS.CREDENTIAL_USERNAME)
+            clear_header(constants.HEADERS.CREDENTIAL_IDENTIFIER)
         end
 
         clear_header(constants.HEADERS.ANONYMOUS)
@@ -240,7 +240,7 @@ local function match_consumer(conf, jwt)
         return false, { status = 401, message = "Unable to find consumer for token" }
     end
 
-    set_consumer(consumer, { username = consumer_id, id = jwt.claims["sub"] }, nil)
+    set_consumer(consumer, { id = jwt.claims["sub"] }, nil)
     
 
     return true
