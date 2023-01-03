@@ -9,11 +9,14 @@ return {
         fields = {
           { uri_param_names = { type = "set", elements = { type = "string" }, default = { "jwt" }, }, },
           { cookie_names = { type = "set", elements = { type = "string" }, default = {} }, },
+          { bearer_header = { type = "string", required = false }, },
           { claims_to_verify = { type = "set", elements = { type = "string", one_of = { "exp", "nbf" }, }, default = { "exp" } }, },
           { anonymous = { type = "string", uuid = true, legacy = true }, },
           { run_on_preflight = { type = "boolean", default = true }, },
           { maximum_expiration = { type = "number", default = 0, between = { 0, 31536000 }, }, },
           { algorithm = { type = "string", default = "RS256" }, },
+
+          { allowed_aud = { type = "string", required = false }, },
 
           { allowed_iss = { type = "set", elements = { type = "string" }, required = true }, },
           { iss_key_grace_period = { type = "number", default = 10, between = { 1, 60 }, }, },

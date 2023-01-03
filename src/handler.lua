@@ -4,6 +4,7 @@ local jwt_decoder = require "kong.plugins.jwt.jwt_parser"
 local socket = require "socket"
 local keycloak_keys = require("kong.plugins.jwt-keycloak.keycloak_keys")
 
+local validate_audience = require("kong.plugins.jwt-keycloak.validators.audience").validate_audience
 local validate_issuer = require("kong.plugins.jwt-keycloak.validators.issuers").validate_issuer
 local validate_scope = require("kong.plugins.jwt-keycloak.validators.scope").validate_scope
 local validate_roles = require("kong.plugins.jwt-keycloak.validators.roles").validate_roles
@@ -74,7 +75,13 @@ local function retrieve_token(conf)
         end
     end
 
-    local authorization_header = kong.request.get_header("authorization")
+    local authorization_header = nil
+    if conf.bearer_header == nil then
+        authorization_header = kong.request.get_header("authorization")
+    else
+        authorization_header = kong.request.get_header(conf.bearer_header)
+    end
+
     if authorization_header then
         local iterator, iter_err = re_gmatch(authorization_header, "\\s*[Bb]earer\\s+(.+)")
         if not iterator then
@@ -296,6 +303,10 @@ local function do_authentication(conf)
         return false, { status = 401, message = "Token issuer not allowed" }
     end
 
+    if not validate_audience(conf.allowed_aud, jwt.claims) then
+        return false, { status = 401, message = "Token audience not allowed" }
+    end
+
     local err = validate_signature(conf, jwt)
     if err ~= nil then
         return false, err
@@ -308,6 +319,7 @@ local function do_authentication(conf)
             return ok, err
         end
     end
+
 
     -- Verify roles or scopes
     local ok, err = validate_scope(conf.scope, jwt.claims)
