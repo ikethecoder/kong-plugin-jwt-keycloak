@@ -9,7 +9,9 @@ return {
         fields = {
           { uri_param_names = { type = "set", elements = { type = "string" }, default = { "jwt" }, }, },
           { cookie_names = { type = "set", elements = { type = "string" }, default = {} }, },
-          { bearer_header = { type = "string", required = false }, },
+          { access_token_header = { type = "string", required = false }, },
+          { realm = { type = "string", required = false }, },
+          { disable_access_token_header = { type = "boolean", default = false }, },
           { claims_to_verify = { type = "set", elements = { type = "string", one_of = { "exp", "nbf" }, }, default = { "exp" } }, },
           { anonymous = { type = "string", uuid = true, legacy = true }, },
           { run_on_preflight = { type = "boolean", default = true }, },

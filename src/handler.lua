@@ -11,6 +11,8 @@ local validate_roles = require("kong.plugins.jwt-keycloak.validators.roles").val
 local validate_realm_roles = require("kong.plugins.jwt-keycloak.validators.roles").validate_realm_roles
 local validate_client_roles = require("kong.plugins.jwt-keycloak.validators.roles").validate_client_roles
 
+local clear_header = kong.service.request.clear_header
+
 local re_gmatch = ngx.re.gmatch
 
 local JwtKeycloakHandler = BasePlugin:extend()
@@ -76,10 +78,10 @@ local function retrieve_token(conf)
     end
 
     local authorization_header = nil
-    if conf.bearer_header == nil then
+    if conf.access_token_header == nil then
         authorization_header = kong.request.get_header("authorization")
     else
-        authorization_header = kong.request.get_header(conf.bearer_header)
+        authorization_header = kong.request.get_header(conf.access_token_header)
     end
 
     if authorization_header then
@@ -133,7 +135,6 @@ end
 
 local function set_consumer(consumer, credential, token)
     local set_header = kong.service.request.set_header
-    local clear_header = kong.service.request.clear_header
 
     if consumer and consumer.id then
         set_header(constants.HEADERS.CONSUMER_ID, consumer.id)
@@ -192,6 +193,15 @@ local function get_keys(well_known_endpoint)
     }
 end
 
+-- https://www.rfc-editor.org/rfc/rfc6750#section-3
+local function error_exit_headers(status, conf)
+    if conf.realm == nil or status == 403 then
+        return {}
+    else
+        return { ["WWW-Authenticate"] = 'Bearer realm="' .. conf.realm .. '"' }
+    end
+end
+
 local function validate_signature(conf, jwt, second_call)
     local issuer_cache_key = 'issuer_keys_' .. jwt.claims.iss
     
@@ -222,7 +232,7 @@ local function validate_signature(conf, jwt, second_call)
         return validate_signature(conf, jwt, true)
     end
 
-    return kong.response.exit(401, { message = "Invalid token signature" })
+    return kong.response.exit(401, { message = "Invalid token signature" }, error_exit_headers(401, conf))
 end
 
 local function match_consumer(conf, jwt)
@@ -259,13 +269,13 @@ local function do_authentication(conf)
     local token, err = retrieve_token(conf)
     if err then
         kong.log.err(err)
-        return kong.response.exit(500, { message = "An unexpected error occurred" })
+        return kong.response.exit(500, { message = "An unexpected auth error occurred" })
     end
 
     local token_type = type(token)
     if token_type ~= "string" then
         if token_type == "nil" then
-            return false, { status = 401, message = "Unauthorized" }
+            return false, { status = 401, message = "Unauthorized"}
         elseif token_type == "table" then
             return false, { status = 401, message = "Multiple tokens provided" }
         else
@@ -344,7 +354,6 @@ local function do_authentication(conf)
     return false, { status = 403, message = "Access token does not have the required scope/role: " .. err }
 end
 
-
 function JwtKeycloakHandler:access(conf)
     JwtKeycloakHandler.super.access(self)
 
@@ -369,13 +378,21 @@ function JwtKeycloakHandler:access(conf)
                                                     conf.anonymous, true)
             if err then
                 kong.log.err(err)
-                return kong.response.exit(500, { message = "An unexpected error occurred" })
+                return kong.response.exit(500, { message = "An unexpected auth error occurred" })
             end
 
             set_consumer(consumer, nil, nil)
         else
-            return kong.response.exit(err.status, err.errors or { message = err.message })
+            return kong.response.exit(err.status, err.errors or { message = err.message }, error_exit_headers(err.status, conf))
         end
+    end
+
+    if conf.disable_access_token_header then
+        local header_name = conf.access_token_header
+        if conf.access_token_header == nil then
+            header_name = "authorization"
+        end
+        clear_header (header_name)
     end
 end
 
