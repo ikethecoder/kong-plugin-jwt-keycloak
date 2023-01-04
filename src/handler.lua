@@ -1,4 +1,3 @@
-local BasePlugin = require "kong.plugins.base_plugin"
 local constants = require "kong.constants"
 local jwt_decoder = require "kong.plugins.jwt.jwt_parser"
 local socket = require "socket"
@@ -15,19 +14,11 @@ local clear_header = kong.service.request.clear_header
 
 local re_gmatch = ngx.re.gmatch
 
-local JwtKeycloakHandler = BasePlugin:extend()
+local JwtKeycloakHandler = {}
 
-local priority_env_var = "JWT_KEYCLOAK_PRIORITY"
-local priority
-if os.getenv(priority_env_var) then
-    priority = tonumber(os.getenv(priority_env_var))
-else
-    priority = 1005
-end
-kong.log.debug('JWT_KEYCLOAK_PRIORITY: ' .. priority)
 
-JwtKeycloakHandler.PRIORITY = priority
-JwtKeycloakHandler.VERSION = "1.1.0"
+JwtKeycloakHandler.VERSION = kong_meta.version
+JwtKeycloakHandler.PRIORITY = 1005
 
 function table_to_string(tbl)
     local result = ""
@@ -99,10 +90,6 @@ local function retrieve_token(conf)
             return m[1]
         end
     end
-end
-
-function JwtKeycloakHandler:new()
-    JwtKeycloakHandler.super.new(self, "jwt-keycloak")
 end
 
 local function load_consumer(consumer_id, anonymous)
@@ -354,6 +341,7 @@ local function do_authentication(conf)
     return false, { status = 403, message = "Access token does not have the required scope/role: " .. err }
 end
 
+-- access
 function JwtKeycloakHandler:access(conf)
     JwtKeycloakHandler.super.access(self)
 
