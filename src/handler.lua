@@ -16,8 +16,7 @@ local re_gmatch = ngx.re.gmatch
 
 local JwtKeycloakHandler = {}
 
-
-JwtKeycloakHandler.VERSION = kong_meta.version
+JwtKeycloakHandler.VERSION = "1.1.0"
 JwtKeycloakHandler.PRIORITY = 1005
 
 function table_to_string(tbl)
@@ -341,6 +340,7 @@ local function do_authentication(conf)
     return false, { status = 403, message = "Access token does not have the required scope/role: " .. err }
 end
 
+--
 -- access
 function JwtKeycloakHandler:access(conf)
     JwtKeycloakHandler.super.access(self)
