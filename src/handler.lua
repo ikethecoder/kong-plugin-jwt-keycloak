@@ -234,6 +234,18 @@ local function retrieve_tokens(conf)
     tokens[tokens_n] = token
   end
 
+  -- Avoid parsing the body of each request if we already found a token. In that
+  -- case the token inside the payload would be ignored.
+  if tokens_n == 0 then
+    local body = kong.request.get_body()
+    for _, v in ipairs(conf.body_names) do
+        if body[v] then
+            tokens_n = tokens_n + 1
+            tokens[tokens_n] = body[v]
+        end
+    end
+  end
+
   if tokens_n == 0 then
     return nil
   end
