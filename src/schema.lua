@@ -24,6 +24,12 @@ local schema = {
               elements = { type = "string" },
               default = {}
           }, },
+          { body_names = {
+              -- description = "A list of body names that Kong will inspect to retrieve JWTs.",
+              type = "set",
+              elements = { type = "string" },
+              default = {}
+          }, },
           { claims_to_verify = {
               -- description = "A list of registered claims (according to RFC 7519) that Kong can verify as well. Accepted values: one of exp or nbf.",
               type = "set",
