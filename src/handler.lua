@@ -242,7 +242,7 @@ local function retrieve_tokens(conf)
   if tokens_n == 0 then
     local body = kong.request.get_body()
     for _, v in ipairs(conf.body_names) do
-        if body[v] then
+        if body ~= nil and body[v] then
             tokens_n = tokens_n + 1
             tokens[tokens_n] = body[v]
         end
