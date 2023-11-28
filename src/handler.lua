@@ -2,6 +2,9 @@ local constants = require "kong.constants"
 local jwt_decoder = require "kong.plugins.jwt.jwt_parser"
 local kong_meta = require "kong.meta"
 
+local b64 = require "ngx.base64"
+local decode_base64url = b64.decode_base64url
+
 local socket = require "socket"
 local keycloak_keys = require("kong.plugins.jwt-keycloak.keycloak_keys")
 
@@ -69,7 +72,7 @@ local function custom_helper_issuer_get_keys(well_known_endpoint, cafile)
 
   local decoded_keys = {}
   for i, key in ipairs(keys) do
-      decoded_keys[i] = jwt_decoder:base64_decode(key)
+      decoded_keys[i] = decode_base64url(key)
   end
 
   kong.log.debug('Number of keys retrieved: ' .. table.getn(decoded_keys))

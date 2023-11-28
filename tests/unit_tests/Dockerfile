@@ -19,7 +19,8 @@ RUN apk add --no-cache \
     make \
     m4 \
     zlib-dev \
-    bsd-compat-headers
+    bsd-compat-headers \
+    expat-dev
 
 # Install openresty
 RUN wget -O "/etc/apk/keys/$(basename ${OPENRESTY_PUB_KEY})" ${OPENRESTY_PUB_KEY} \

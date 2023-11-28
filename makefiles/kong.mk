@@ -38,7 +38,7 @@ kong-db-migrate: build
 		-e "KONG_PG_USER=${KONG_DB_USER}" \
 		-e "KONG_PG_PASSWORD=${KONG_DB_PASS}" \
 		-e "KONG_PG_DATABASE=${KONG_DB_NAME}" \
-		${FULL_IMAGE_NAME} kong migrations bootstrap --vv
+		${FULL_IMAGE_NAME} sh -c 'kong migrations bootstrap --vv && kong migrations up -vv'
 
 kong-db-start: kong-db-create kong-db-migrate
 

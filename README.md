@@ -71,6 +71,7 @@ There are a few limitations about testing combinations:
 | 3.2.2              | ✅ |
 | 3.3.0              | ✅ |
 | 3.4.0              | ✅ |
+| 3.5.0              | ✅ |
 
 
 | Keycloak Version   |    Tests passing   |
