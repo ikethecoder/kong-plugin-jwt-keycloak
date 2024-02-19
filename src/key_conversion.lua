@@ -1,8 +1,9 @@
 -- Taken from https://github.com/zmartzone/lua-resty-openidc/blob/master/lib/resty/openidc.lua
 
 local string = string
-local b64 = ngx.encode_base64
-local unb64 = ngx.decode_base64
+local b64 = require "ngx.base64"
+local encode_base64url = b64.encode_base64url
+local decode_base64url = b64.decode_base64url
 
 local wrap = ('.'):rep(64)
 
@@ -35,7 +36,7 @@ local function encode_sequence(array, of)
 end
 
 local function der2pem(data, typ)
-    data = b64(data)
+    data = encode_base64url(data)
     return data:gsub(wrap, '%0\n', (#data - 1) / 64)
 end
 
@@ -59,8 +60,7 @@ local function openidc_base64_url_decode(input)
         local padlen = 4 - reminder
         input = input .. string.rep('=', padlen)
     end
-    input = input:gsub('-', '+'):gsub('_', '/')
-    return unb64(input)
+    return decode_base64url(input)
 end
 
 local function openidc_pem_from_rsa_n_and_e(n, e)

@@ -1,17 +1,29 @@
 <h1>Kong plugin jwt-keycloak</h1>
 
-> **Attention**: I will no longer be maintaining this plugin. Thanks for all the positive feedback and interest in this project. Feel free to fork and keep it alive. Cheers!
+> **⚠️ This fork is maintained for a limited set of version combinations**
+>
+> The official author of the plugin no longer maintains it since 24.08.2021  
+> Details see: <https://github.com/gbbirkisson/kong-plugin-jwt-keycloak/blob/master/README.md>
+>
+> We will continue to use this plugin in our project and maintain here this fork for it.  
+> But we do not need backward compatible changes... so we will not test it to be able to work with older versions of kong.
+>
+> Supported version matrix:
+>
+> - kong dependencies of version 2.8.1 .... and higher versions
+> - postgres database of version 12.x ... and higher versions
+> - keycloak versions in the way how redhat-sso contains the versions in their product starting from keycloak 9.0
 
 A plugin for the [Kong Microservice API Gateway](https://konghq.com/solutions/gateway/) to validate access tokens issued by [Keycloak](https://www.keycloak.org/). It uses the [Well-Known Uniform Resource Identifiers](https://tools.ietf.org/html/rfc5785) provided by [Keycloak](https://www.keycloak.org/) to load [JWK](https://tools.ietf.org/html/rfc7517) public keys from issuers that are specifically allowed for each endpoint.
 
 The biggest advantages of this plugin are that it supports:
 
-* Rotating public keys
-* Authorization based on token claims:
-    * `scope`
-    * `realm_access`
-    * `resource_access`
-* Matching Keycloak users/clients to Kong consumers
+- Rotating public keys
+- Authorization based on token claims:
+  - `scope`
+  - `realm_access`
+  - `resource_access`
+- Matching Keycloak users/clients to Kong consumers
 
 If you have any suggestion or comments, please feel free to open an issue on this GitHub page.
 
@@ -42,33 +54,31 @@ If you have any suggestion or comments, please feel free to open an issue on thi
 
 ## Tested and working for
 
-| Kong Version |   Tests passing    |
-| ------------ | :----------------: |
-| 0.13.x       |        :x:         |
-| 0.14.x       |        :x:         |
-| 1.0.x        | :white_check_mark: |
-| 1.1.x        | :white_check_mark: |
-| 1.2.x        | :white_check_mark: |
-| 1.3.x        | :white_check_mark: |
-| 1.4.x        | :white_check_mark: |
-| 1.5.x        | :white_check_mark: |
-| 2.0.x        | :white_check_mark: |
-| 2.1.x        | :white_check_mark: |
-| 2.2.x        | :white_check_mark: |
-| 2.3.x        | :white_check_mark: |
+There are a few limitations about testing combinations:
 
-| Keycloak Version |   Tests passing    |
-| ---------------- | :----------------: |
-| 3.X.X            | :white_check_mark: |
-| 4.X.X            | :white_check_mark: |
-| 5.X.X            | :white_check_mark: |
-| 6.X.X            | :white_check_mark: |
-| 7.X.X            | :white_check_mark: |
-| 8.X.X            | :white_check_mark: |
-| 9.X.X            | :white_check_mark: |
-| 10.X.X           | :white_check_mark: |
-| 11.X.X           | :white_check_mark: |
-| 12.X.X           | :white_check_mark: |
+- Kong only provides a limited set off their lua code on luarocks  
+  <https://luarocks.org/modules/kong/kong>  
+  for this reason currently only these version combinations can be validated
+- Redhat / Jboss / Keycloak provides also not all latest updates of RHSSO base versions of keycloak
+  <https://quay.io/repository/keycloak/keycloak?tab=tags>  
+  For this reason not the latest patch versions on the contained rhsso product versions can be used for testing  
+  <https://access.redhat.com/solutions/3296901>
+
+| Kong Version | Tests passing |
+| ------------ | :-----------: | --- |
+| 2.8.1        |      ✅       |
+| 3.0.0        |      ✅       |
+| 3.1.0        |      ✖️       |     |
+| 3.2.2        |      ✖️       |     |
+| 3.3.0        |      ✖️       |     |
+| 3.4.0        |      ✖️       |     |
+| 3.5.0        |      ✖️       |
+
+| Keycloak Version   |                                  Tests passing                                   |
+| ------------------ | :------------------------------------------------------------------------------: |
+| 9.0.3 (RHSSO-7.4)  |                                        ✅                                        |
+| 15.0.2 (RHSSO-7.5) |                                        ✅                                        |
+| 18.0.2 (RHSSO-7.6) | ✖️ [Issue](https://github.com/telekom-digioss/kong-plugin-jwt-keycloak/issues/5) |
 
 ## Installation
 
@@ -83,7 +93,7 @@ luarocks install kong-plugin-jwt-keycloak
 #### Packing the rock
 
 ```bash
-export PLUGIN_VERSION=1.1.0-1
+export PLUGIN_VERSION=1.3.0-1
 luarocks make
 luarocks pack kong-plugin-jwt-keycloak ${PLUGIN_VERSION}
 ```
@@ -91,7 +101,7 @@ luarocks pack kong-plugin-jwt-keycloak ${PLUGIN_VERSION}
 #### Installing the rock
 
 ```bash
-export PLUGIN_VERSION=1.1.0-1
+export PLUGIN_VERSION=1.3.0-1
 luarocks install jwt-keycloak-${PLUGIN_VERSION}.all.rock
 ```
 
@@ -122,6 +132,7 @@ curl -X POST http://localhost:8001/services/{service}/plugins \
 ```
 
 #### Route
+
 ```bash
 curl -X POST http://localhost:8001/routes/{route_id}/plugins \
     --data "name=jwt-keycloak" \
@@ -146,18 +157,20 @@ curl -X POST http://localhost:8001/plugins \
 | enabled                                | no      | `true`            | Whether this plugin will be applied.                                                                                                                                                                                                                                                                                                                                                     |
 | config.uri_param_names                 | no      | `jwt`             | A list of querystring parameters that Kong will inspect to retrieve JWTs.                                                                                                                                                                                                                                                                                                                |
 | config.cookie_names                    | no      |                   | A list of cookie names that Kong will inspect to retrieve JWTs.                                                                                                                                                                                                                                                                                                                          |
-| config.access_token_header                    | no      |                   | An alternate header to use instead of "Authorization"                                                                                                                                                                                                                                                                                                                        |
-| config.disable_access_token_header                    | no      | 'false'                  | If set to 'true', the access token will not be sent to the upstream service                                                                                                                                                                                                                                                                                                                 |
-| config.realm                    | no      |                   | In the event of a 401, this value gets populated in the "WWW-Authenticate" response header                                                                                                                                                                                                                                                                                                                        |
+| config.body_names                      | no      |                   | A list of body names that Kong will inspect to retrieve JWTs.                                                                                                                                                                                                                                                                                                                            |
+| config.access_token_header             | no      |                   | An alternate header to use instead of "Authorization"                                                                                                                                                                                                                                                                                                                                    |
+| config.disable_access_token_header     | no      | 'false'           | If set to 'true', the access token will not be sent to the upstream service                                                                                                                                                                                                                                                                                                              |
+| config.realm                           | no      |                   | In the event of a 401, this value gets populated in the "WWW-Authenticate" response header                                                                                                                                                                                                                                                                                               |
 | config.claims_to_verify                | no      | `exp`             | A list of registered claims (according to [RFC 7519](https://tools.ietf.org/html/rfc7519)) that Kong can verify as well. Accepted values: `exp`, `nbf`.                                                                                                                                                                                                                                  |
 | config.anonymous                       | no      |                   | An optional string (consumer uuid) value to use as an “anonymous” consumer if authentication fails. If empty (default), the request will fail with an authentication failure `4xx`. Please note that this value must refer to the Consumer `id` attribute which is internal to Kong, and not its `custom_id`.                                                                            |
 | config.run_on_preflight                | no      | `true`            | A boolean value that indicates whether the plugin should run (and try to authenticate) on `OPTIONS` preflight requests, if set to false then `OPTIONS` requests will always be allowed.                                                                                                                                                                                                  |
+| config.header_names                    | no      | `authorization`   | A list of HTTP header names that Kong will inspect to retrieve JWTs. `OPTIONS` requests will always be allowed.                                                                                                                                                                                                                                                                          |
 | config.maximum_expiration              | no      | `0`               | An integer limiting the lifetime of the JWT to `maximum_expiration` seconds in the future. Any JWT that has a longer lifetime will rejected (HTTP 403). If this value is specified, `exp` must be specified as well in the `claims_to_verify` property. The default value of `0` represents an indefinite period. Potential clock skew should be considered when configuring this value. |
 | config.algorithm                       | no      | `RS256`           | The algorithm used to verify the token’s signature. Can be `HS256`, `HS384`, `HS512`, `RS256`, or `ES256`.                                                                                                                                                                                                                                                                               |
-| config.allowed_aud                     | no     |                   | Allowed audience for this route/service/api. Can be specified as a `string` or as a [Pattern](http://lua-users.org/wiki/PatternsTutorial).                                                                                                                                                                                                                                      |
+| config.allowed_aud                     | no      |                   | Allowed audience for this route/service/api. Can be specified as a `string` or as a [Pattern](http://lua-users.org/wiki/PatternsTutorial).                                                                                                                                                                                                                                               |
 | config.allowed_iss                     | yes     |                   | A list of allowed issuers for this route/service/api. Can be specified as a `string` or as a [Pattern](http://lua-users.org/wiki/PatternsTutorial).                                                                                                                                                                                                                                      |
 | config.iss_key_grace_period            | no      | `10`              | An integer that sets the number of seconds until public keys for an issuer can be updated after writing new keys to the cache. This is a guard so that the Kong cache will not invalidate every time a token signed with an invalid public key is sent to the plugin.                                                                                                                    |
-| config.well_known_template             | false   | *see description* | A string template that the well known endpoint for keycloak is created from. String formatting is applied on the template and `%s` is replaced by the issuer of the token. Default value is `%s/.well-known/openid-configuration`                                                                                                                                                        |
+| config.well_known_template             | false   | _see description_ | A string template that the well known endpoint for keycloak is created from. String formatting is applied on the template and `%s` is replaced by the issuer of the token. Default value is `%s/.well-known/openid-configuration`                                                                                                                                                        |
 | config.scope                           | no      |                   | A list of scopes the token must have to access the api, i.e. `["email"]`. The token only has to have one of the listed scopes to be authorized.                                                                                                                                                                                                                                          |
 | config.roles                           | no      |                   | A list of roles of current client the token must have to access the api, i.e. `["uma_protection"]`. The token only has to have one of the listed roles to be authorized.                                                                                                                                                                                                                 |
 | config.realm_roles                     | no      |                   | A list of realm roles (`realm_access`) the token must have to access the api, i.e. `["offline_access"]`. The token only has to have one of the listed roles to be authorized.                                                                                                                                                                                                            |
@@ -173,15 +186,15 @@ Create service and add the plugin to it, and lastly create a route:
 
 ```bash
 curl -X POST http://localhost:8001/services \
-    --data "name=mockbin-echo" \
-    --data "url=http://mockbin.org/echo"
+    --data "name=httpbin-anything" \
+    --data "url=http://localhost:8093/anything"
 
-curl -X POST http://localhost:8001/services/mockbin-echo/plugins \
+curl -X POST http://localhost:8001/services/httpbin-anything/plugins \
     --data "name=jwt-keycloak" \
     --data "config.allowed_iss=http://localhost:8080/auth/realms/master"
 
-curl -X POST http://localhost:8001/services/mockbin-echo/routes \
-    --data "paths=/" 
+curl -X POST http://localhost:8001/services/httpbin-anything/routes \
+    --data "paths=/"
 ```
 
 Then you can call the API:
@@ -218,8 +231,9 @@ To verify token issuers, this plugin needs to be able to access the `<ISSUER_REA
 ## Testing
 
 Requires:
-* make
-* docker
+
+- make
+- docker
 
 **Because testing uses docker host networking it does not work on MacOS**
 
@@ -234,10 +248,8 @@ make keycloak-start
 ```bash
 make test-unit # Unit tests
 make test-integration # Integration tests with postgres
-make test-integration KONG_DATABASE=cassandra # Integration tests with cassandra
 make test # All test with postgres
-make test KONG_DATABASE=cassandra # All test with cassandra
-make test-all # All test with cassandra and postgres and multiple versions of kong
+make test-all # All test with supported DBMS versions and multiple versions of kong
 ```
 
 ### Useful debug commands
