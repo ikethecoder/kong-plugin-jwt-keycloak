@@ -389,6 +389,11 @@ local function do_authentication(conf)
   local claims = jwt.claims
   local header = jwt.header
 
+  -- Verify that the audience is allowed
+  if not validate_audience(conf.allowed_aud, jwt.claims) then
+    return false, { status = 401, message = "Token audience not allowed" }
+  end
+
   -- Verify that the issuer is allowed
   if not validate_issuer(conf.allowed_iss, jwt.claims) then
     return false, { status = 401, message = "Token issuer not allowed" }
